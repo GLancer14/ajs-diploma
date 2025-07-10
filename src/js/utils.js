@@ -23,8 +23,29 @@
  * ```
  * */
 export function calcTileType(index, boardSize) {
-  // TODO: ваш код будет тут
-  return 'center';
+  let tileType = '';
+  const boardCellsCount = boardSize ** 2;
+  if (index === 0) {
+    tileType = 'top-left';
+  } else if (index === boardSize - 1) {
+    tileType = 'top-right';
+  } else if (index === (boardCellsCount - boardSize)) {
+    tileType = 'bottom-left';
+  } else if (index === (boardCellsCount - 1)) {
+    tileType = 'bottom-right';
+  } else if (index < boardSize - 1) {
+    tileType = 'top';
+  } else if (index % boardSize === 0) {
+    tileType = 'left';
+  } else if ((index + 1) % boardSize === 0) {
+    tileType = 'right';
+  } else if (index < boardCellsCount && index > boardCellsCount - boardSize) {
+    tileType = 'bottom';
+  } else {
+    tileType = 'center';
+  }
+  
+  return tileType;
 }
 
 export function calcHealthLevel(health) {
