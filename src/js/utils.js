@@ -1,3 +1,5 @@
+import PositionedCharacter from "./PositionedCharacter.js";
+
 /**
  * @todo
  * @param index - индекс поля
@@ -58,4 +60,29 @@ export function calcHealthLevel(health) {
   }
 
   return 'high';
+}
+
+export function calcPositionedCharacters(characterType, teamStorage, boardSize) {
+  const boardCellsCount = boardSize ** 2;
+  const possiblePositions = [];
+  if (characterType === 'player') {
+    for (let i = 0; i < boardCellsCount; i++) {
+      if (i === 0 || i % boardSize === 0 || (i - 1) % boardSize === 0) {
+        possiblePositions.push(i);
+      }
+    }
+  } else {
+    for (let i = 0; i < boardCellsCount; i++) {
+      if ((i + 1) % boardSize === 0 || (i + 2) % boardSize === 0) {
+        possiblePositions.push(i);
+      }
+    }
+  }
+
+  return teamStorage.map(item => {
+    const randomPossiblePositionIndex = Math.floor(Math.random() * possiblePositions.length);
+    const characterPosition = possiblePositions[randomPossiblePositionIndex];
+    possiblePositions.splice(randomPossiblePositionIndex, 1);
+    return new PositionedCharacter(item, characterPosition);
+  });
 }
