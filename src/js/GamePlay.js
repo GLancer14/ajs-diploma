@@ -148,13 +148,15 @@ export default class GamePlay {
   onCellEnter(event) {
     event.preventDefault();
     const index = this.cells.indexOf(event.currentTarget);
-    this.cellEnterListeners.forEach(o => o.call(null, index));
+    this.cellEnterListeners[index].call(null, index);
+    // this.cellEnterListeners.forEach(o => o.call(null, index));
   }
 
   onCellLeave(event) {
     event.preventDefault();
     const index = this.cells.indexOf(event.currentTarget);
-    this.cellLeaveListeners.forEach(o => o.call(null, index));
+    this.cellLeaveListeners[index].call(null, index);
+    // this.cellLeaveListeners.forEach(o => o.call(null, index));
   }
 
   onCellClick(event) {
