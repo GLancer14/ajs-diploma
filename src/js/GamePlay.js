@@ -161,7 +161,8 @@ export default class GamePlay {
 
   onCellClick(event) {
     const index = this.cells.indexOf(event.currentTarget);
-    this.cellClickListeners.forEach(o => o.call(null, index));
+    this.cellClickListeners[index].call(null, index);
+    // this.cellClickListeners.forEach(o => o.call(null, index));
   }
 
   onNewGameClick(event) {

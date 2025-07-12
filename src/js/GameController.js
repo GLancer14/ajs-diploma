@@ -2,6 +2,8 @@ import themes from "./themes.js";
 import { generateTeam } from './generators.js';
 import { playerTeamTypes, foeTeamTypes } from "./characters/allowedTypes.js";
 import { calcPositionedCharacters } from "./utils.js";
+import GameState from "./GameState.js";
+import GamePlay from "./GamePlay.js";
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -10,6 +12,7 @@ export default class GameController {
     this.playerTeam = [];
     this.foeTeam = [];
     this.allPostionedCharacters = [];
+    this.gameState = new GameState();
   }
 
   init() {
@@ -25,6 +28,7 @@ export default class GameController {
     this.gamePlay.redrawPositions(this.allPostionedCharacters);
     this.addCellsEnterListeners();
     this.addCellsLeaveListeners();
+    this.addCellsClickListeners();
   }
 
   addCellsEnterListeners() {
@@ -39,8 +43,24 @@ export default class GameController {
     });
   }
 
-  onCellClick(index) {
-    // TODO: react to click
+  addCellsClickListeners() {
+    this.gamePlay.cells.forEach(() => {
+      this.gamePlay.addCellClickListener(this.onCellClick);
+    });
+  }
+
+  onCellClick = (index) => {
+    const positionedCharacter = this.allPostionedCharacters.find(item => index === item.position);
+    if (positionedCharacter && this.playerTeam.some(item => item === positionedCharacter.character)) {
+      if (this.gameState.selectedCharacterIndex !== null) {
+        this.gamePlay.deselectCell(this.gameState.selectedCharacterIndex);
+      }
+
+      this.gameState.selectedCharacterIndex = index;
+      this.gamePlay.selectCell(index);
+    } else {
+      GamePlay.showError("Можно выбрать только собственных персонажей");
+    }
   }
 
   onCellEnter = (index) => {
