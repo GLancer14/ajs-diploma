@@ -10,9 +10,9 @@ export default class GameController {
   constructor(gamePlay, stateService) {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
-    this.playerTeam = [];
-    this.foeTeam = [];
-    this.allPostionedCharacters = [];
+    this.playerTeamPositioned = [];
+    this.foeTeamPositioned = [];
+    this.allPositionedCharacters = [];
     this.selectedCharaterMovePossibleCells = [];
     this.selectedCharaterAttackPossibleCells = [];
     this.gameState = new GameState();
@@ -22,13 +22,13 @@ export default class GameController {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes.desert);
-    this.playerTeam = generateTeam(playerTeamTypes, 2, 3);
-    this.foeTeam = generateTeam(foeTeamTypes, 2, 3);
-    this.allPostionedCharacters = [
-      ...calcPositionedCharacters('player', this.playerTeam, this.gamePlay.boardSize),
-      ...calcPositionedCharacters('foe', this.foeTeam, this.gamePlay.boardSize),
-    ];
-    this.gamePlay.redrawPositions(this.allPostionedCharacters);
+    const playerTeam = generateTeam(playerTeamTypes, 2, 3);
+    const foeTeam = generateTeam(foeTeamTypes, 2, 3);
+
+    this.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
+    this.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
+    this.allPositionedCharacters = [ ...this.playerTeamPositioned, ...this.foeTeamPositioned ];
+    this.gamePlay.redrawPositions(this.allPositionedCharacters);
     this.addCellsEnterListeners();
     this.addCellsLeaveListeners();
     this.addCellsClickListeners();
@@ -53,21 +53,24 @@ export default class GameController {
   }
 
   onCellClick = (index) => {
-    const positionedCharacter = this.allPostionedCharacters.find(item => index === item.position);
-    if (positionedCharacter && this.playerTeam.some(item => item === positionedCharacter.character)) {
-      if (this.gameState.selectedCharacter !== null) {
-        this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
-      }
-
-      this.gameState.selectedCharacter = positionedCharacter;
-      this.gamePlay.selectCell(index);
+    const positionedCharacter = this.allPositionedCharacters.find(item => index === item.position);
+    if (
+      positionedCharacter &&
+      this.playerTeamPositioned.some(item => item.character === positionedCharacter.character)
+    ) {
+      this.selectCharacter(positionedCharacter);
+    } else if (
+      this.gameState.selectedCharacter !== null &&
+      this.selectedCharaterMovePossibleCells.some(wantedCell => wantedCell === index)
+    ) {
+      this.moveCharacter(index);
     } else {
       GamePlay.showError("Можно выбрать только собственных персонажей");
     }
   }
 
   onCellEnter = (index) => {
-    const positionedCharacter = this.allPostionedCharacters.find(item => index === item.position);
+    const positionedCharacter = this.allPositionedCharacters.find(item => index === item.position);
     if (positionedCharacter) {
       const tooltipContent = this.compileTooltip(positionedCharacter);
       this.gamePlay.showCellTooltip(tooltipContent, index);
@@ -80,7 +83,7 @@ export default class GameController {
   }
 
   onCellLeave = (index) => {
-    const positionedCharacter = this.allPostionedCharacters.find(item => index === item.position);
+    const positionedCharacter = this.allPositionedCharacters.find(item => index === item.position);
     if (positionedCharacter) {
       this.gamePlay.hideCellTooltip(index);
     }
@@ -105,17 +108,7 @@ export default class GameController {
     // console.log("Row: ", selectedCharacterRowIndex, "column: ", );
     // console.log(this.getCellCoordinates(index));
     if (this.gameState.selectedCharacter !== null) {
-      this.selectedCharaterMovePossibleCells = this.calcMovePossibleCellsIndexes();
-      this.selectedCharaterAttackPossibleCells = this.calcAttackPossibleCellsIndexes();
-
-      if (
-        index !== this.gameState.selectedCharacter.position &&
-        this.allPostionedCharacters.some(positionedCharacter => positionedCharacter.position === index)
-      ) {
-        return cursors.pointer;
-      } else if (index === this.gameState.selectedCharacter.position) {
-        return cursors.auto;
-      } else if (this.selectedCharaterMovePossibleCells.some(item => item === index)) {
+      if (this.selectedCharaterMovePossibleCells.some(item => item === index)) {
         this.gamePlay.cells.forEach((_, index) => {
           if (this.selectedCharaterMovePossibleCells.some(possibleCellIndex => possibleCellIndex === index)) {
             this.gamePlay.deselectCell(index);
@@ -125,6 +118,7 @@ export default class GameController {
 
         return cursors.pointer;
       } else if (this.selectedCharaterAttackPossibleCells.some(item => item === index)) {
+        console.log("crosshair")
         this.gamePlay.cells.forEach((_, index) => {
           if (this.selectedCharaterAttackPossibleCells.some(possibleCellIndex => possibleCellIndex === index)) {
             this.gamePlay.deselectCell(index);
@@ -133,10 +127,40 @@ export default class GameController {
         this.gamePlay.selectCell(index, "red");
 
         return cursors.crosshair;
+      } else if (
+        index !== this.gameState.selectedCharacter.position &&
+        this.allPositionedCharacters.some(positionedCharacter => positionedCharacter.position === index)
+      ) {
+        return cursors.pointer;
+      } else if (index === this.gameState.selectedCharacter.position) {
+        return cursors.auto;
+      
       } else {
         return cursors.notallowed;
       }
+    } else {
+      return cursors.auto;
     }
+  }
+
+  selectCharacter(positionedCharacter) {
+    if (this.gameState.selectedCharacter !== null) {
+      this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
+    }
+
+    this.gameState.selectedCharacter = positionedCharacter;
+    this.selectedCharaterMovePossibleCells = this.calcMovePossibleCellsIndexes();
+    this.selectedCharaterAttackPossibleCells = this.calcAttackPossibleCellsIndexes();
+    this.gamePlay.selectCell(positionedCharacter.position);
+  }
+
+  moveCharacter(index) {
+    this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
+    this.gameState.selectedCharacter.position = index;
+    this.gamePlay.deselectCell(index);
+    this.gameState.selectedCharacter = null;
+    this.gamePlay.redrawPositions(this.allPositionedCharacters);
+    this.gameState.nextStep();
   }
 
   getCellCoordinates(index) {
@@ -159,17 +183,19 @@ export default class GameController {
           possibleCellCoords.column >= selectedCharacterCoords.column - selectedCharacterAttackRange &&
           possibleCellCoords.column <= selectedCharacterCoords.column + selectedCharacterAttackRange
         ) {
-          possibleAttackCellsIndexes.push(this.gamePlay.cells[i]);
+          possibleAttackCellsIndexes.push(i);
         }
       }
 
-      return possibleAttackCellsIndexes.filter(possibleCellIndex => {
-        if (
-          this.allPostionedCharacters.some(positionedCharacter => positionedCharacter.position === possibleCellIndex)
-        ) {
+      const filteredCells = possibleAttackCellsIndexes.filter(possibleCellIndex => {
+        const charactersAtAttackRange = this.foeTeamPositioned.find(positionedCharacter => {
+          return positionedCharacter.position === possibleCellIndex && selectedCharacterIndex !== possibleCellIndex
+        });
+        if (charactersAtAttackRange) {
           return true;
         }
       });
+      return filteredCells;
     }
   }
 
@@ -226,15 +252,21 @@ export default class GameController {
         }
       }
 
-      return possibleCellsIndexes.filter(possibleCellIndex => {
+      const filteredCells = possibleCellsIndexes.filter(possibleCellIndex => {
+        const charactersAtMoveRange = this.allPositionedCharacters.find((positionedCharacter) => {
+          return possibleCellIndex === positionedCharacter.position;
+        });
+        
         if (
           possibleCellIndex >= 0 &&
           possibleCellIndex < this.gamePlay.boardSize ** 2 &&
-          this.allPostionedCharacters.some(positionedCharacter => positionedCharacter.position !== possibleCellIndex)
+          !charactersAtMoveRange
         ) {
           return true;
         }
       });
+
+      return filteredCells;
     }
   }
 }
