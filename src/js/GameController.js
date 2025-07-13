@@ -22,8 +22,9 @@ export default class GameController {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes.desert);
-    const playerTeam = generateTeam(playerTeamTypes, 2, 3);
-    const foeTeam = generateTeam(foeTeamTypes, 2, 3);
+    const playerTeam = generateTeam(playerTeamTypes, 2, 4);
+    const foeTeam = generateTeam(foeTeamTypes, 2, 4);
+    this.gameState.foeCharactersQueue = foeTeam;
 
     this.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
     this.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
@@ -81,10 +82,7 @@ export default class GameController {
       this.gamePlay.showCellTooltip(tooltipContent, index);
     }
 
-    const setCursorType = this.setCursorType(index);
-
-    this.gamePlay.setCursor(setCursorType);
-
+    this.gamePlay.setCursor(this.setCursorType(index));
   }
 
   onCellLeave = (index) => {
@@ -139,11 +137,14 @@ export default class GameController {
         return cursors.pointer;
       } else if (index === this.gameState.selectedCharacter.position) {
         return cursors.auto;
-      
       } else {
         return cursors.notallowed;
       }
     } else {
+      if (this.allPositionedCharacters.some(positionedCharacter => positionedCharacter.position === index)) {
+        return cursors.pointer;
+      }
+
       return cursors.auto;
     }
   }
@@ -170,14 +171,24 @@ export default class GameController {
 
   async attackCharacter(index) {
     const foeCharacter = this.allPositionedCharacters.find(character => character.position === index);
-    const damage = Math.max(this.gameState.selectedCharacter.character.attack - foeCharacter.character.defence, this.gameState.selectedCharacter.character.attack * 0.1);
+    const damage = Math.max(this.gameState.selectedCharacter.character.attack - foeCharacter.character.defence, this.gameState.selectedCharacter.character.attack);
     foeCharacter.character.health -= damage;
     this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
     this.gameState.selectedCharacter = null;
     this.gamePlay.deselectCell(index);
     await this.gamePlay.showDamage(index, damage);
+    this.handleCharacterDeath(foeCharacter);
     this.gamePlay.redrawPositions(this.allPositionedCharacters);
     this.gameState.nextStep();
+  }
+
+  handleCharacterDeath(attackedCharacter) {
+    if (attackedCharacter.character.health <= 0) {
+      this.allPositionedCharacters = this.allPositionedCharacters.filter(character => {
+        console.log(character !== attackedCharacter);
+        return character !== attackedCharacter;
+      });
+    }
   }
 
   getCellCoordinates(index) {
@@ -285,5 +296,9 @@ export default class GameController {
 
       return filteredCells;
     }
+  }
+
+  static calculateFoeTurn() {
+    
   }
 }
