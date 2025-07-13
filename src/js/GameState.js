@@ -1,7 +1,7 @@
 export default class GameState {
   constructor() {
     this.currentStep = 'player';
-    this.selectedCharacterIndex = null;
+    this.selectedCharacter = null;
   }
 
   static from(object) {
