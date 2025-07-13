@@ -64,6 +64,11 @@ export default class GameController {
       this.selectedCharaterMovePossibleCells.some(wantedCell => wantedCell === index)
     ) {
       this.moveCharacter(index);
+    } else if (
+      this.gameState.selectedCharacter !== null &&
+      this.selectedCharaterAttackPossibleCells.some(cellIndex => cellIndex === index)
+    ) {
+      this.attackCharacter(index);
     } else {
       GamePlay.showError("Можно выбрать только собственных персонажей");
     }
@@ -159,6 +164,18 @@ export default class GameController {
     this.gameState.selectedCharacter.position = index;
     this.gamePlay.deselectCell(index);
     this.gameState.selectedCharacter = null;
+    this.gamePlay.redrawPositions(this.allPositionedCharacters);
+    this.gameState.nextStep();
+  }
+
+  async attackCharacter(index) {
+    const foeCharacter = this.allPositionedCharacters.find(character => character.position === index);
+    const damage = Math.max(this.gameState.selectedCharacter.character.attack - foeCharacter.character.defence, this.gameState.selectedCharacter.character.attack * 0.1);
+    foeCharacter.character.health -= damage;
+    this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
+    this.gameState.selectedCharacter = null;
+    this.gamePlay.deselectCell(index);
+    await this.gamePlay.showDamage(index, damage);
     this.gamePlay.redrawPositions(this.allPositionedCharacters);
     this.gameState.nextStep();
   }
