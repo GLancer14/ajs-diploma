@@ -1,4 +1,5 @@
 import Team from "./Team.js";
+import { upCharacterByLevel } from "./utils.js";
 
 /**
  * Формирует экземпляр персонажа из массива allowedTypes со
@@ -14,7 +15,13 @@ export function* characterGenerator(allowedTypes, maxLevel) {
   for (;;) {
     const randomTypeIndex = Math.floor(Math.random() * allowedTypes.length);
     const characterConstructor = allowedTypes[randomTypeIndex];
-    yield new characterConstructor(Math.ceil(Math.random() * maxLevel));
+    const newCharacterLevel = Math.ceil(Math.random() * maxLevel);
+    const newCharacter = new characterConstructor(1);
+    if (newCharacterLevel > 1) {
+      newCharacter.upCharacterByLevel(newCharacterLevel - 1);
+    }
+
+    yield newCharacter;
   }
 }
 

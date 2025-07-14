@@ -18,13 +18,22 @@ export default class GameController {
   init() {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
-    this.gamePlay.drawUi(themes.desert);
-    const playerTeam = generateTeam(playerTeamTypes, 2, 4);
-    const foeTeam = generateTeam(foeTeamTypes, 2, 4);
-    this.gameState.foeCharactersQueue = foeTeam;
+    this.gamePlay.drawUi(themes[this.gameState.gameLevel - 1]);
+    let playerTeam;
+    let foeTeam;
 
-    this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
-    this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
+    if (this.gameState.gameLevel === 1) {
+      playerTeam = generateTeam(playerTeamTypes, 3, 1);
+      foeTeam = generateTeam(foeTeamTypes, 1, 1);
+      this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
+      this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
+    } else {
+      playerTeam = this.gameState.playerTeamPositioned.map(item => item.character);
+      foeTeam = generateTeam(foeTeamTypes, 1, 1);
+      this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
+      this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
+    }
+
     this.gameState.allPositionedCharacters = [ ...this.gameState.playerTeamPositioned, ...this.gameState.foeTeamPositioned ];
     this.gamePlay.redrawPositions(this.gameState.allPositionedCharacters);
     this.addCellsEnterListeners();
@@ -162,7 +171,7 @@ export default class GameController {
 
   async attackCharacter(index) {
     const foeCharacter = this.gameState.allPositionedCharacters.find(character => character.position === index);
-    const damage = Math.max(this.gameState.selectedCharacter.character.attack - foeCharacter.character.defence, this.gameState.selectedCharacter.character.attack);
+    const damage = Math.max(this.gameState.selectedCharacter.character.attack - foeCharacter.character.defence, this.gameState.selectedCharacter.character.attack * 0.1);
     foeCharacter.character.health -= damage;
     this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
     this.gameState.selectedCharacter = null;
@@ -310,12 +319,19 @@ export default class GameController {
   }
 
   calculateFoeTurn() {
+    const turnTime = 1000;
     this.gameState.selectedCharacter = this.gameState.foeTeamPositioned[this.gameState.nextFoeIndex];
     this.selectCharacter(this.gameState.selectedCharacter);
-    this.blockField(1000);
+    this.blockField(turnTime);
     setTimeout(() => {
       this.activateFoe();
-    }, 1000);
+    }, turnTime);
+  }
+
+  calculateLevelUpAfterVictory() {
+    this.gameState.playerTeamPositioned.forEach(positionedCharacter => {
+        positionedCharacter.character.upCharacterByLevel(1);
+    });
   }
 
   activateFoe() {
@@ -343,11 +359,23 @@ export default class GameController {
     }
   }
 
+  startNewLevel() {
+    this.calculateLevelUpAfterVictory();
+    this.gameState.gameLevel += 1;
+    this.init();
+    this.nextTurn();
+  }
+
   nextTurn() {
     this.gameState.currentTurn = this.gameState.currentTurn === 'player' ? 'foe' : 'player';
+    console.log(this.gameState.currentTurn);
     if (this.gameState.currentTurn === 'foe' && this.gameState.foeTeamPositioned.length > 0) {
       this.gameState.nextFoeIndex = (this.gameState.nextFoeIndex + 1) % this.gameState.foeTeamPositioned.length;
       this.calculateFoeTurn();
+    } else {
+      if (this.gameState.foeTeamPositioned.length === 0) {
+        this.startNewLevel();
+      }
     }
   }
 }
