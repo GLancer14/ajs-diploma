@@ -1,7 +1,7 @@
 import themes from "./themes.js";
 import { generateTeam } from './generators.js';
 import { playerTeamTypes, foeTeamTypes } from "./characters/allowedTypes.js";
-import { calcPositionedCharacters } from "./utils.js";
+import { calcDistanceBetweenTwoPoints, calcPositionedCharacters } from "./utils.js";
 import GameState from "./GameState.js";
 import GamePlay from "./GamePlay.js";
 import cursors from "./cursors.js";
@@ -22,8 +22,8 @@ export default class GameController {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes.desert);
-    const playerTeam = generateTeam(playerTeamTypes, 2, 2);
-    const foeTeam = generateTeam(foeTeamTypes, 2, 2);
+    const playerTeam = generateTeam(playerTeamTypes, 2, 4);
+    const foeTeam = generateTeam(foeTeamTypes, 2, 4);
     this.gameState.foeCharactersQueue = foeTeam;
 
     this.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
@@ -105,11 +105,6 @@ export default class GameController {
   }
 
   setCursorType(index) {
-    // const selectedCharacterRowIndex = Math.ceil((index + 1) / ((this.gamePlay.boardSize ** 2) + 1) * this.gamePlay.boardSize) - 1;
-    // const selectedCharacterColumnIndex = Math.ceil(index / this.gamePlay.boardSize);
-    // console.log();
-    // console.log("Row: ", selectedCharacterRowIndex, "column: ", );
-    // console.log(this.getCellCoordinates(index));
     if (this.gameState.selectedCharacter !== null) {
       if (this.selectedCharaterMovePossibleCells.some(item => item === index)) {
         this.gamePlay.cells.forEach((_, index) => {
@@ -197,6 +192,10 @@ export default class GameController {
     const cellRow = Math.ceil((index + 1) / ((this.gamePlay.boardSize ** 2) + 1) * this.gamePlay.boardSize) - 1;
     const cellColumn = index - ((cellRow) * this.gamePlay.boardSize);
     return { row: cellRow, column: cellColumn };
+  }
+
+  getCellIndexFromCoordinates(coordinates) {
+    return this.gamePlay.boardSize * coordinates.row + coordinates.column;
   }
 
   calcAttackPossibleCellsIndexes() {
@@ -301,9 +300,22 @@ export default class GameController {
     }
   }
 
+  blockField(existingTime) {
+    const blockingWrapper = document.createElement("div");
+    blockingWrapper.classList.add("blocking-wrapper");
+    document.body.append(blockingWrapper);
+    const hourglass = document.createElement("span");
+    hourglass.classList.add("blocking-wrapper_hourglass");
+    hourglass.textContent = '\u{1f551}';
+    blockingWrapper.append(hourglass);
+
+    setTimeout(() => blockingWrapper.remove(), existingTime);
+  }
+
   calculateFoeTurn() {
     this.gameState.selectedCharacter = this.foeTeamPositioned[this.gameState.nextFoeIndex];
     this.selectCharacter(this.gameState.selectedCharacter);
+    this.blockField(1000);
     setTimeout(() => {
       this.activateFoe();
     }, 1000);
@@ -311,7 +323,7 @@ export default class GameController {
 
   activateFoe() {
     const playerTeamCharactersCoordinates = this.playerTeamPositioned.map(positionedCharacter => {
-      return this.getCellCoordinates(positionedCharacter.position);
+      return {coordinates: this.getCellCoordinates(positionedCharacter.position), position: positionedCharacter.position};
     })
     const foeCharacterCoordinates = this.getCellCoordinates(this.gameState.selectedCharacter.position);
     if (this.selectedCharaterAttackPossibleCells.length > 0) {
@@ -321,10 +333,16 @@ export default class GameController {
       const playerCharacterWithMinHealth = playerCharctersAvailableForAttack.sort((a, b) => a.character.health - b.character.health)[0];
       this.attackCharacter(playerCharacterWithMinHealth.position);
     } else {
-      this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
-      this.gameState.selectedCharacter = null;
-      this.gamePlay.redrawPositions(this.allPositionedCharacters);
-      this.nextTurn();
+      const closestPlayerCharacter = playerTeamCharactersCoordinates.map(playerCharacterPosition => {
+        const distanceToPlayerCharacter = calcDistanceBetweenTwoPoints(playerCharacterPosition.coordinates, foeCharacterCoordinates);
+        return {distanceToPlayerCharacter, playerCharacterPosition};
+      }).sort((a, b) => a.distanceToPlayerCharacter - b.distanceToPlayerCharacter)[0];
+      const closestCellToCharacter = this.selectedCharaterMovePossibleCells.map(possibleMoveCell => {
+        const possibleMoveCellCoordinates = this.getCellCoordinates(possibleMoveCell);
+        const distanceToPlayerCharacter = calcDistanceBetweenTwoPoints(closestPlayerCharacter.playerCharacterPosition.coordinates, possibleMoveCellCoordinates);
+        return {distanceToPlayerCharacter, possibleMoveCell};
+      }).sort((a, b) => a.distanceToPlayerCharacter - b.distanceToPlayerCharacter)[0];
+      this.moveCharacter(closestCellToCharacter.possibleMoveCell);
     }
   }
 
@@ -332,10 +350,7 @@ export default class GameController {
     this.gameState.currentTurn = this.gameState.currentTurn === 'player' ? 'foe' : 'player';
     if (this.gameState.currentTurn === 'foe' && this.foeTeamPositioned.length > 0) {
       this.gameState.nextFoeIndex = (this.gameState.nextFoeIndex + 1) % this.foeTeamPositioned.length;
-
       this.calculateFoeTurn();
-      // console.log(this.foeTeamPositioned)
-      console.log(this.allPositionedCharacters)
     }
   }
 }

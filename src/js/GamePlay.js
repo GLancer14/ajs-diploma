@@ -71,6 +71,7 @@ export default class GamePlay {
   redrawPositions(positions) {
     for (const cell of this.cells) {
       cell.innerHTML = '';
+      cell.title = '';
     }
 
     for (const position of positions) {

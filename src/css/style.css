@@ -12,6 +12,28 @@ body {
   font-size: 16px;
 }
 
+.blocking-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+
+  background-color: rgba(0, 0, 0, 0.3);
+
+}
+
+.blocking-wrapper_hourglass {
+  font-size: 54px;
+
+  color: black;
+}
+
 .btn {
   display: inline-block;
   font-weight: 400;
