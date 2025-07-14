@@ -1,5 +1,4 @@
 import Team from "./Team.js";
-import { upCharacterByLevel } from "./utils.js";
 
 /**
  * Формирует экземпляр персонажа из массива allowedTypes со

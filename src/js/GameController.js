@@ -23,7 +23,7 @@ export default class GameController {
     let foeTeam;
 
     if (this.gameState.gameLevel === 1) {
-      playerTeam = generateTeam(playerTeamTypes, 3, 1);
+      playerTeam = generateTeam(playerTeamTypes, 3, 3);
       foeTeam = generateTeam(foeTeamTypes, 1, 1);
       this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
       this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
@@ -306,7 +306,13 @@ export default class GameController {
     }
   }
 
-  blockField(existingTime) {
+  blockBoard() {
+    const board = document.querySelector(".board");
+    const boardCloned = board.cloneNode(true);
+    board.replaceWith(boardCloned);
+  }
+
+  blockWindow(existingTime) {
     const blockingWrapper = document.createElement("div");
     blockingWrapper.classList.add("blocking-wrapper");
     document.body.append(blockingWrapper);
@@ -322,7 +328,7 @@ export default class GameController {
     const turnTime = 1000;
     this.gameState.selectedCharacter = this.gameState.foeTeamPositioned[this.gameState.nextFoeIndex];
     this.selectCharacter(this.gameState.selectedCharacter);
-    this.blockField(turnTime);
+    this.blockWindow(turnTime);
     setTimeout(() => {
       this.activateFoe();
     }, turnTime);
@@ -337,12 +343,12 @@ export default class GameController {
   activateFoe() {
     const playerTeamCharactersCoordinates = this.gameState.playerTeamPositioned.map(positionedCharacter => {
       return {coordinates: this.getCellCoordinates(positionedCharacter.position), position: positionedCharacter.position};
-    })
+    });
     const foeCharacterCoordinates = this.getCellCoordinates(this.gameState.selectedCharacter.position);
     if (this.selectedCharaterAttackPossibleCells.length > 0) {
       const playerCharctersAvailableForAttack = this.gameState.playerTeamPositioned.filter(positionedCharacter => {
         return this.selectedCharaterAttackPossibleCells.includes(positionedCharacter.position);
-      })
+      });
       const playerCharacterWithMinHealth = playerCharctersAvailableForAttack.sort((a, b) => a.character.health - b.character.health)[0];
       this.attackCharacter(playerCharacterWithMinHealth.position);
     } else {
@@ -366,15 +372,30 @@ export default class GameController {
     this.nextTurn();
   }
 
+  runEndGameActions(endGameType) {
+    this.blockBoard();
+    GamePlay.showMessage(endGameType === 'win' ? "Вы победили!" : "Вы проиграли!");
+  }
+
+  checkEndGameActions() {
+    if (this.gameState.playerTeamPositioned.length === 0) {
+      this.runEndGameActions('lose');
+      return true;
+    } else if (this.gameState.foeTeamPositioned.length === 0 && this.gameState.gameLevel === 4) {
+      this.runEndGameActions('win');
+      return true;
+    }
+  }
+
   nextTurn() {
     this.gameState.currentTurn = this.gameState.currentTurn === 'player' ? 'foe' : 'player';
-    console.log(this.gameState.currentTurn);
     if (this.gameState.currentTurn === 'foe' && this.gameState.foeTeamPositioned.length > 0) {
       this.gameState.nextFoeIndex = (this.gameState.nextFoeIndex + 1) % this.gameState.foeTeamPositioned.length;
       this.calculateFoeTurn();
+      this.checkEndGameActions();
     } else {
       if (this.gameState.foeTeamPositioned.length === 0) {
-        this.startNewLevel();
+        this.checkEndGameActions() || this.startNewLevel();
       }
     }
   }
