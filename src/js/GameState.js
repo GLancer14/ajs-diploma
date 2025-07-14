@@ -5,6 +5,10 @@ export default class GameState {
     this.currentTurn = 'player';
     this.selectedCharacter = null;
     this.nextFoeIndex = 0;
+    this.gameLevel = 1;
+    this.playerTeamPositioned = [];
+    this.foeTeamPositioned = [];
+    this.allPositionedCharacters = [];
   }
 
   static from(object) {

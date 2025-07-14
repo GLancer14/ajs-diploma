@@ -10,9 +10,6 @@ export default class GameController {
   constructor(gamePlay, stateService) {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
-    this.playerTeamPositioned = [];
-    this.foeTeamPositioned = [];
-    this.allPositionedCharacters = [];
     this.selectedCharaterMovePossibleCells = [];
     this.selectedCharaterAttackPossibleCells = [];
     this.gameState = new GameState();
@@ -26,10 +23,10 @@ export default class GameController {
     const foeTeam = generateTeam(foeTeamTypes, 2, 4);
     this.gameState.foeCharactersQueue = foeTeam;
 
-    this.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
-    this.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
-    this.allPositionedCharacters = [ ...this.playerTeamPositioned, ...this.foeTeamPositioned ];
-    this.gamePlay.redrawPositions(this.allPositionedCharacters);
+    this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
+    this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
+    this.gameState.allPositionedCharacters = [ ...this.gameState.playerTeamPositioned, ...this.gameState.foeTeamPositioned ];
+    this.gamePlay.redrawPositions(this.gameState.allPositionedCharacters);
     this.addCellsEnterListeners();
     this.addCellsLeaveListeners();
     this.addCellsClickListeners();
@@ -54,10 +51,10 @@ export default class GameController {
   }
 
   onCellClick = (index) => {
-    const positionedCharacter = this.allPositionedCharacters.find(item => index === item.position);
+    const positionedCharacter = this.gameState.allPositionedCharacters.find(item => index === item.position);
     if (
       positionedCharacter &&
-      this.playerTeamPositioned.some(item => item.character === positionedCharacter.character)
+      this.gameState.playerTeamPositioned.some(item => item.character === positionedCharacter.character)
     ) {
       this.selectCharacter(positionedCharacter);
     } else if (
@@ -76,7 +73,7 @@ export default class GameController {
   }
 
   onCellEnter = (index) => {
-    const positionedCharacter = this.allPositionedCharacters.find(item => index === item.position);
+    const positionedCharacter = this.gameState.allPositionedCharacters.find(item => index === item.position);
     if (positionedCharacter) {
       const tooltipContent = this.compileTooltip(positionedCharacter);
       this.gamePlay.showCellTooltip(tooltipContent, index);
@@ -86,7 +83,7 @@ export default class GameController {
   }
 
   onCellLeave = (index) => {
-    const positionedCharacter = this.allPositionedCharacters.find(item => index === item.position);
+    const positionedCharacter = this.gameState.allPositionedCharacters.find(item => index === item.position);
     if (positionedCharacter) {
       this.gamePlay.hideCellTooltip(index);
     }
@@ -126,7 +123,7 @@ export default class GameController {
         return cursors.crosshair;
       } else if (
         index !== this.gameState.selectedCharacter.position &&
-        this.allPositionedCharacters.some(positionedCharacter => positionedCharacter.position === index)
+        this.gameState.allPositionedCharacters.some(positionedCharacter => positionedCharacter.position === index)
       ) {
         return cursors.pointer;
       } else if (index === this.gameState.selectedCharacter.position) {
@@ -135,7 +132,7 @@ export default class GameController {
         return cursors.notallowed;
       }
     } else {
-      if (this.allPositionedCharacters.some(positionedCharacter => positionedCharacter.position === index)) {
+      if (this.gameState.allPositionedCharacters.some(positionedCharacter => positionedCharacter.position === index)) {
         return cursors.pointer;
       }
 
@@ -159,12 +156,12 @@ export default class GameController {
     this.gameState.selectedCharacter.position = index;
     this.gamePlay.deselectCell(index);
     this.gameState.selectedCharacter = null;
-    this.gamePlay.redrawPositions(this.allPositionedCharacters);
+    this.gamePlay.redrawPositions(this.gameState.allPositionedCharacters);
     this.nextTurn();
   }
 
   async attackCharacter(index) {
-    const foeCharacter = this.allPositionedCharacters.find(character => character.position === index);
+    const foeCharacter = this.gameState.allPositionedCharacters.find(character => character.position === index);
     const damage = Math.max(this.gameState.selectedCharacter.character.attack - foeCharacter.character.defence, this.gameState.selectedCharacter.character.attack);
     foeCharacter.character.health -= damage;
     this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
@@ -172,19 +169,19 @@ export default class GameController {
     this.gamePlay.deselectCell(index);
     await this.gamePlay.showDamage(index, damage);
     this.handleCharacterDeath(foeCharacter);
-    this.gamePlay.redrawPositions(this.allPositionedCharacters);
+    this.gamePlay.redrawPositions(this.gameState.allPositionedCharacters);
     this.nextTurn();
   }
 
   handleCharacterDeath(attackedCharacter) {
     if (attackedCharacter.character.health <= 0) {
-      this.playerTeamPositioned = this.playerTeamPositioned.filter(character => {
+      this.gameState.playerTeamPositioned = this.gameState.playerTeamPositioned.filter(character => {
         return character !== attackedCharacter;
       });
-      this.foeTeamPositioned = this.foeTeamPositioned.filter(character => {
+      this.gameState.foeTeamPositioned = this.gameState.foeTeamPositioned.filter(character => {
         return character !== attackedCharacter;
       });
-      this.allPositionedCharacters = [...this.playerTeamPositioned, ...this.foeTeamPositioned];
+      this.gameState.allPositionedCharacters = [...this.gameState.playerTeamPositioned, ...this.gameState.foeTeamPositioned];
     }
   }
 
@@ -217,7 +214,7 @@ export default class GameController {
       }
 
       const filteredCells = possibleAttackCellsIndexes.filter(possibleCellIndex => {
-        const opponentTeam = this.gameState.currentTurn === "player" ? this.foeTeamPositioned : this.playerTeamPositioned;
+        const opponentTeam = this.gameState.currentTurn === "player" ? this.gameState.foeTeamPositioned : this.gameState.playerTeamPositioned;
         const charactersAtAttackRange = opponentTeam.find(positionedCharacter => {
           return positionedCharacter.position === possibleCellIndex && selectedCharacterIndex !== possibleCellIndex
         });
@@ -283,7 +280,7 @@ export default class GameController {
       }
 
       const filteredCells = possibleCellsIndexes.filter(possibleCellIndex => {
-        const charactersAtMoveRange = this.allPositionedCharacters.find((positionedCharacter) => {
+        const charactersAtMoveRange = this.gameState.allPositionedCharacters.find((positionedCharacter) => {
           return possibleCellIndex === positionedCharacter.position;
         });
         
@@ -313,7 +310,7 @@ export default class GameController {
   }
 
   calculateFoeTurn() {
-    this.gameState.selectedCharacter = this.foeTeamPositioned[this.gameState.nextFoeIndex];
+    this.gameState.selectedCharacter = this.gameState.foeTeamPositioned[this.gameState.nextFoeIndex];
     this.selectCharacter(this.gameState.selectedCharacter);
     this.blockField(1000);
     setTimeout(() => {
@@ -322,12 +319,12 @@ export default class GameController {
   }
 
   activateFoe() {
-    const playerTeamCharactersCoordinates = this.playerTeamPositioned.map(positionedCharacter => {
+    const playerTeamCharactersCoordinates = this.gameState.playerTeamPositioned.map(positionedCharacter => {
       return {coordinates: this.getCellCoordinates(positionedCharacter.position), position: positionedCharacter.position};
     })
     const foeCharacterCoordinates = this.getCellCoordinates(this.gameState.selectedCharacter.position);
     if (this.selectedCharaterAttackPossibleCells.length > 0) {
-      const playerCharctersAvailableForAttack = this.playerTeamPositioned.filter(positionedCharacter => {
+      const playerCharctersAvailableForAttack = this.gameState.playerTeamPositioned.filter(positionedCharacter => {
         return this.selectedCharaterAttackPossibleCells.includes(positionedCharacter.position);
       })
       const playerCharacterWithMinHealth = playerCharctersAvailableForAttack.sort((a, b) => a.character.health - b.character.health)[0];
@@ -348,8 +345,8 @@ export default class GameController {
 
   nextTurn() {
     this.gameState.currentTurn = this.gameState.currentTurn === 'player' ? 'foe' : 'player';
-    if (this.gameState.currentTurn === 'foe' && this.foeTeamPositioned.length > 0) {
-      this.gameState.nextFoeIndex = (this.gameState.nextFoeIndex + 1) % this.foeTeamPositioned.length;
+    if (this.gameState.currentTurn === 'foe' && this.gameState.foeTeamPositioned.length > 0) {
+      this.gameState.nextFoeIndex = (this.gameState.nextFoeIndex + 1) % this.gameState.foeTeamPositioned.length;
       this.calculateFoeTurn();
     }
   }
