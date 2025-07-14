@@ -9,6 +9,8 @@ export default class GameState {
     this.playerTeamPositioned = [];
     this.foeTeamPositioned = [];
     this.allPositionedCharacters = [];
+    this.topPoints = 0;
+    this.currentPoints = 0;
   }
 
   static from(object) {

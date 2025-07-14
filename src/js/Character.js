@@ -26,7 +26,7 @@ export default class Character {
     // TODO: выбросите исключение, если кто-то использует "new Character()"
   }
 
-  upCharacterByLevel(levelCount) {
+  upgradeCharacter(levelCount) {
     for (let i = 0; i < levelCount; i++) {
       this.level += 1;
       this.health =  this.health < 20 ? this.health + 80 : 100;

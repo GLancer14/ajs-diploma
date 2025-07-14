@@ -9,7 +9,7 @@ export default class GamePlay {
     this.cellClickListeners = [];
     this.cellEnterListeners = [];
     this.cellLeaveListeners = [];
-    this.newGameListeners = [];
+    this.newGameListener = null;
     this.saveGameListeners = [];
     this.loadGameListeners = [];
   }
@@ -125,7 +125,7 @@ export default class GamePlay {
    * @param callback
    */
   addNewGameListener(callback) {
-    this.newGameListeners.push(callback);
+    this.newGameListener = callback;
   }
 
   /**
@@ -165,7 +165,7 @@ export default class GamePlay {
 
   onNewGameClick(event) {
     event.preventDefault();
-    this.newGameListeners.forEach(o => o.call(null));
+    this.newGameListener.call(null);
   }
 
   onSaveGameClick(event) {

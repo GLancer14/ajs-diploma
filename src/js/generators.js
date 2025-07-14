@@ -17,7 +17,7 @@ export function* characterGenerator(allowedTypes, maxLevel) {
     const newCharacterLevel = Math.ceil(Math.random() * maxLevel);
     const newCharacter = new characterConstructor(1);
     if (newCharacterLevel > 1) {
-      newCharacter.upCharacterByLevel(newCharacterLevel - 1);
+      newCharacter.upgradeCharacter(newCharacterLevel - 1);
     }
 
     yield newCharacter;

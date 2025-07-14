@@ -39,6 +39,11 @@ export default class GameController {
     this.addCellsEnterListeners();
     this.addCellsLeaveListeners();
     this.addCellsClickListeners();
+    this.addNewGameListener();
+  }
+
+  addNewGameListener() {
+    this.gamePlay.addNewGameListener(this.onNewGameButtonClick);
   }
 
   addCellsEnterListeners() {
@@ -57,6 +62,22 @@ export default class GameController {
     this.gamePlay.cells.forEach(() => {
       this.gamePlay.addCellClickListener(this.onCellClick);
     });
+  }
+
+  onNewGameButtonClick = () => {
+    this.gameState = {
+      currentTurn: 'player',
+      selectedCharacter: null,
+      nextFoeIndex: 0,
+      gameLevel: 1,
+      playerTeamPositioned: [],
+      foeTeamPositioned: [],
+      allPositionedCharacters: [],
+      currentPoints: 0,
+    };
+
+    this.init();
+    GamePlay.showMessage("Начинается новая игра!");
   }
 
   onCellClick = (index) => {
@@ -184,6 +205,10 @@ export default class GameController {
 
   handleCharacterDeath(attackedCharacter) {
     if (attackedCharacter.character.health <= 0) {
+      if (foeTeamTypes.some(type => attackedCharacter.character instanceof type)) {
+        this.gameState.currentPoints += 50;
+      }
+
       this.gameState.playerTeamPositioned = this.gameState.playerTeamPositioned.filter(character => {
         return character !== attackedCharacter;
       });
@@ -336,7 +361,7 @@ export default class GameController {
 
   calculateLevelUpAfterVictory() {
     this.gameState.playerTeamPositioned.forEach(positionedCharacter => {
-        positionedCharacter.character.upCharacterByLevel(1);
+        positionedCharacter.character.upgradeCharacter(1);
     });
   }
 
@@ -374,6 +399,8 @@ export default class GameController {
 
   runEndGameActions(endGameType) {
     this.blockBoard();
+    this.gameState.topPoints = Math.max(this.gameState.topPoints, this.gameState.currentPoints);
+    this.gameState.currentPoints = 0;
     GamePlay.showMessage(endGameType === 'win' ? "Вы победили!" : "Вы проиграли!");
   }
 
