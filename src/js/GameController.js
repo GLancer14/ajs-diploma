@@ -22,8 +22,8 @@ export default class GameController {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes.desert);
-    const playerTeam = generateTeam(playerTeamTypes, 2, 4);
-    const foeTeam = generateTeam(foeTeamTypes, 2, 4);
+    const playerTeam = generateTeam(playerTeamTypes, 2, 2);
+    const foeTeam = generateTeam(foeTeamTypes, 2, 2);
     this.gameState.foeCharactersQueue = foeTeam;
 
     this.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
@@ -121,7 +121,6 @@ export default class GameController {
 
         return cursors.pointer;
       } else if (this.selectedCharaterAttackPossibleCells.some(item => item === index)) {
-        console.log("crosshair")
         this.gamePlay.cells.forEach((_, index) => {
           if (this.selectedCharaterAttackPossibleCells.some(possibleCellIndex => possibleCellIndex === index)) {
             this.gamePlay.deselectCell(index);
@@ -166,7 +165,7 @@ export default class GameController {
     this.gamePlay.deselectCell(index);
     this.gameState.selectedCharacter = null;
     this.gamePlay.redrawPositions(this.allPositionedCharacters);
-    this.gameState.nextStep();
+    this.nextTurn();
   }
 
   async attackCharacter(index) {
@@ -179,15 +178,18 @@ export default class GameController {
     await this.gamePlay.showDamage(index, damage);
     this.handleCharacterDeath(foeCharacter);
     this.gamePlay.redrawPositions(this.allPositionedCharacters);
-    this.gameState.nextStep();
+    this.nextTurn();
   }
 
   handleCharacterDeath(attackedCharacter) {
     if (attackedCharacter.character.health <= 0) {
-      this.allPositionedCharacters = this.allPositionedCharacters.filter(character => {
-        console.log(character !== attackedCharacter);
+      this.playerTeamPositioned = this.playerTeamPositioned.filter(character => {
         return character !== attackedCharacter;
       });
+      this.foeTeamPositioned = this.foeTeamPositioned.filter(character => {
+        return character !== attackedCharacter;
+      });
+      this.allPositionedCharacters = [...this.playerTeamPositioned, ...this.foeTeamPositioned];
     }
   }
 
@@ -216,7 +218,8 @@ export default class GameController {
       }
 
       const filteredCells = possibleAttackCellsIndexes.filter(possibleCellIndex => {
-        const charactersAtAttackRange = this.foeTeamPositioned.find(positionedCharacter => {
+        const opponentTeam = this.gameState.currentTurn === "player" ? this.foeTeamPositioned : this.playerTeamPositioned;
+        const charactersAtAttackRange = opponentTeam.find(positionedCharacter => {
           return positionedCharacter.position === possibleCellIndex && selectedCharacterIndex !== possibleCellIndex
         });
         if (charactersAtAttackRange) {
@@ -298,7 +301,41 @@ export default class GameController {
     }
   }
 
-  static calculateFoeTurn() {
-    
+  calculateFoeTurn() {
+    this.gameState.selectedCharacter = this.foeTeamPositioned[this.gameState.nextFoeIndex];
+    this.selectCharacter(this.gameState.selectedCharacter);
+    setTimeout(() => {
+      this.activateFoe();
+    }, 1000);
+  }
+
+  activateFoe() {
+    const playerTeamCharactersCoordinates = this.playerTeamPositioned.map(positionedCharacter => {
+      return this.getCellCoordinates(positionedCharacter.position);
+    })
+    const foeCharacterCoordinates = this.getCellCoordinates(this.gameState.selectedCharacter.position);
+    if (this.selectedCharaterAttackPossibleCells.length > 0) {
+      const playerCharctersAvailableForAttack = this.playerTeamPositioned.filter(positionedCharacter => {
+        return this.selectedCharaterAttackPossibleCells.includes(positionedCharacter.position);
+      })
+      const playerCharacterWithMinHealth = playerCharctersAvailableForAttack.sort((a, b) => a.character.health - b.character.health)[0];
+      this.attackCharacter(playerCharacterWithMinHealth.position);
+    } else {
+      this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
+      this.gameState.selectedCharacter = null;
+      this.gamePlay.redrawPositions(this.allPositionedCharacters);
+      this.nextTurn();
+    }
+  }
+
+  nextTurn() {
+    this.gameState.currentTurn = this.gameState.currentTurn === 'player' ? 'foe' : 'player';
+    if (this.gameState.currentTurn === 'foe' && this.foeTeamPositioned.length > 0) {
+      this.gameState.nextFoeIndex = (this.gameState.nextFoeIndex + 1) % this.foeTeamPositioned.length;
+
+      this.calculateFoeTurn();
+      // console.log(this.foeTeamPositioned)
+      console.log(this.allPositionedCharacters)
+    }
   }
 }

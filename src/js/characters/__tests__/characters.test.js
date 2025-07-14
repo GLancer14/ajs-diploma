@@ -10,6 +10,8 @@ const bowmanLevel1 = {
   attack: 25,
   defence: 25,
   health: 50,
+  moveRange: 2,
+  attackRange: 2,
   type: 'bowman',
 };
 const swordsmanLevel1 = {
@@ -17,6 +19,8 @@ const swordsmanLevel1 = {
   attack: 40,
   defence: 10,
   health: 50,
+  moveRange: 4,
+  attackRange: 1,
   type: 'swordsman',
 };
 const magicianLevel1 = {
@@ -24,6 +28,8 @@ const magicianLevel1 = {
   attack: 10,
   defence: 40,
   health: 50,
+  moveRange: 1,
+  attackRange: 4,
   type: 'magician',
 };
 const daemonLevel1 = {
@@ -31,6 +37,8 @@ const daemonLevel1 = {
   attack: 10,
   defence: 10,
   health: 50,
+  moveRange: 1,
+  attackRange: 4,
   type: 'daemon',
 };
 const vampireLevel1 = {
@@ -38,6 +46,8 @@ const vampireLevel1 = {
   attack: 25,
   defence: 25,
   health: 50,
+  moveRange: 2,
+  attackRange: 2,
   type: 'vampire',
 };
 const undeadLevel1 = {
@@ -45,6 +55,8 @@ const undeadLevel1 = {
   attack: 40,
   defence: 10,
   health: 50,
+  moveRange: 4,
+  attackRange: 1,
   type: 'undead',
 };
 

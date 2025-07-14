@@ -86,3 +86,9 @@ export function calcPositionedCharacters(characterType, teamStorage, boardSize) 
     return new PositionedCharacter(item, characterPosition);
   });
 }
+
+export function calcDistanceBetweenTwoPoints(firstPoint, secondPoint) {
+  const {row: x1, column: y1} = firstPoint;
+  const {row: x2, column: y2} = secondPoint;
+  return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+}
