@@ -23,8 +23,8 @@ export default class GameController {
     let foeTeam;
 
     if (this.gameState.gameLevel === 1 && !this.gameState.gameLoaded) {
-      playerTeam = generateTeam(playerTeamTypes, 1, 3);
-      foeTeam = generateTeam(foeTeamTypes, 1, 3);
+      playerTeam = generateTeam(playerTeamTypes, 1, 1);
+      foeTeam = generateTeam(foeTeamTypes, 3, 3);
       this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
       this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
     } else if (this.gameState.gameLevel > 1 && !this.gameState.gameLoaded) {
@@ -228,6 +228,10 @@ export default class GameController {
     await this.gamePlay.showDamage(index, damage);
     this.handleCharacterDeath(foeCharacter);
     this.gamePlay.redrawPositions(this.gameState.allPositionedCharacters);
+    if (this.checkEndGameActions()) {
+      return;
+    }
+
     this.nextTurn();
   }
 
@@ -429,6 +433,7 @@ export default class GameController {
     this.blockBoard();
     this.gameState.topPoints = Math.max(this.gameState.topPoints, this.gameState.currentPoints);
     this.gameState.currentPoints = 0;
+    this.gamePlay.setHighScore(() => this.gameState.topPoints);
     GamePlay.showMessage(endGameType === 'win' ? "Вы победили!" : "Вы проиграли!");
   }
 
@@ -447,10 +452,9 @@ export default class GameController {
     if (this.gameState.currentTurn === 'foe' && this.gameState.foeTeamPositioned.length > 0) {
       this.gameState.nextFoeIndex = (this.gameState.nextFoeIndex + 1) % this.gameState.foeTeamPositioned.length;
       this.calculateFoeTurn();
-      this.checkEndGameActions();
     } else {
       if (this.gameState.foeTeamPositioned.length === 0) {
-        this.checkEndGameActions() || this.startNewLevel();
+        this.startNewLevel();
       }
     }
   }

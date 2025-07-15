@@ -1,4 +1,4 @@
 {
-  "resetMocks": false
-  
+  "resetMocks": false,
+  "setupFiles": ["jest-localstorage-mock"]
 }
