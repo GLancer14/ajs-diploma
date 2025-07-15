@@ -23,7 +23,7 @@ export default class GameController {
     let foeTeam;
 
     if (this.gameState.gameLevel === 1 && !this.gameState.gameLoaded) {
-      playerTeam = generateTeam(playerTeamTypes, 3, 3);
+      playerTeam = generateTeam(playerTeamTypes, 1, 3);
       foeTeam = generateTeam(foeTeamTypes, 1, 3);
       this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
       this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
@@ -96,13 +96,16 @@ export default class GameController {
   }
 
   onLoadGameButtonClick = () => {
-    const savedGameState = this.stateService.load();
-    console.log(GameState.from(savedGameState));
-    this.gameState = GameState.from(savedGameState);
-    this.gameState.gameLoaded = true;
-    this.init();
-    this.gameState.gameLoaded = false;
-    GamePlay.showMessage("Игра загружена!");
+    try {
+      const savedGameState = this.stateService.load();
+      this.gameState = GameState.from(savedGameState);
+      this.gameState.gameLoaded = true;
+      this.init();
+      this.gameState.gameLoaded = false;
+      GamePlay.showMessage("Игра загружена!");
+    } catch(e) {
+      GamePlay.showError('Invalid state');
+    }
   }
 
   onCellClick = (index) => {

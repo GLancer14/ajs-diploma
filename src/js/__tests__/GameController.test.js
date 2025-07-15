@@ -8,7 +8,7 @@ test('check title tooltip compiling method', () => {
   const gamePlay = new GamePlay();
   const stateService = new GameStateService(globalThis.localStorage);
   const gameCtrl = new GameController(gamePlay, stateService);
-  const positionedCharacter = new PositionedCharacter(new Bowman(2), 1);
-  const expectedValue = '\u{1F396} 2 \u2694 25 \u{1F6E1} 25 \u2764 50';
+  const positionedCharacter = new PositionedCharacter(new Bowman({ level: 2 }), 1);
+  const expectedValue = '\u{1F396} 2 \u2694 22 \u{1F6E1} 12 \u2764 50';
   expect(gameCtrl.compileTooltip(positionedCharacter)).toBe(expectedValue);
 });
