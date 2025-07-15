@@ -22,14 +22,14 @@ export default class GameController {
     let playerTeam;
     let foeTeam;
 
-    if (this.gameState.gameLevel === 1) {
+    if (this.gameState.gameLevel === 1 && !this.gameState.gameLoaded) {
       playerTeam = generateTeam(playerTeamTypes, 3, 3);
-      foeTeam = generateTeam(foeTeamTypes, 1, 1);
+      foeTeam = generateTeam(foeTeamTypes, 1, 3);
       this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
       this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
-    } else {
+    } else if (this.gameState.gameLevel > 1 && !this.gameState.gameLoaded) {
       playerTeam = this.gameState.playerTeamPositioned.map(item => item.character);
-      foeTeam = generateTeam(foeTeamTypes, 1, 1);
+      foeTeam = generateTeam(foeTeamTypes, this.gameState.gameLevel, 3);
       this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
       this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
     }
@@ -40,10 +40,20 @@ export default class GameController {
     this.addCellsLeaveListeners();
     this.addCellsClickListeners();
     this.addNewGameListener();
+    this.addSaveGameListener();
+    this.addLoadGameListener();
   }
 
   addNewGameListener() {
     this.gamePlay.addNewGameListener(this.onNewGameButtonClick);
+  }
+
+  addSaveGameListener() {
+    this.gamePlay.addSaveGameListener(this.onSaveGameButtonClick);
+  }
+
+  addLoadGameListener() {
+    this.gamePlay.addLoadGameListener(this.onLoadGameButtonClick);
   }
 
   addCellsEnterListeners() {
@@ -78,6 +88,21 @@ export default class GameController {
 
     this.init();
     GamePlay.showMessage("Начинается новая игра!");
+  }
+
+  onSaveGameButtonClick = () => {
+    this.stateService.save(this.gameState);
+    GamePlay.showMessage("Игра сохранена!");
+  }
+
+  onLoadGameButtonClick = () => {
+    const savedGameState = this.stateService.load();
+    console.log(GameState.from(savedGameState));
+    this.gameState = GameState.from(savedGameState);
+    this.gameState.gameLoaded = true;
+    this.init();
+    this.gameState.gameLoaded = false;
+    GamePlay.showMessage("Игра загружена!");
   }
 
   onCellClick = (index) => {

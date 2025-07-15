@@ -10,8 +10,8 @@ export default class GamePlay {
     this.cellEnterListeners = [];
     this.cellLeaveListeners = [];
     this.newGameListener = null;
-    this.saveGameListeners = [];
-    this.loadGameListeners = [];
+    this.saveGameListener = null;
+    this.loadGameListener = null;
   }
 
   bindToDOM(container) {
@@ -134,7 +134,7 @@ export default class GamePlay {
    * @param callback
    */
   addSaveGameListener(callback) {
-    this.saveGameListeners.push(callback);
+    this.saveGameListener = callback;
   }
 
   /**
@@ -143,7 +143,7 @@ export default class GamePlay {
    * @param callback
    */
   addLoadGameListener(callback) {
-    this.loadGameListeners.push(callback);
+    this.loadGameListener = callback;
   }
 
   onCellEnter(event) {
@@ -170,12 +170,12 @@ export default class GamePlay {
 
   onSaveGameClick(event) {
     event.preventDefault();
-    this.saveGameListeners.forEach(o => o.call(null));
+    this.saveGameListener.call(null);
   }
 
   onLoadGameClick(event) {
     event.preventDefault();
-    this.loadGameListeners.forEach(o => o.call(null));
+    this.loadGameListener.call(null);
   }
 
   static showError(message) {

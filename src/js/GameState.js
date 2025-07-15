@@ -1,20 +1,40 @@
+import { foeTeamTypes, playerTeamTypes } from "./characters/allowedTypes.js";
 import GameController from "./GameController.js";
+import PositionedCharacter from "./PositionedCharacter.js";
 
 export default class GameState {
-  constructor() {
-    this.currentTurn = 'player';
-    this.selectedCharacter = null;
-    this.nextFoeIndex = 0;
-    this.gameLevel = 1;
-    this.playerTeamPositioned = [];
-    this.foeTeamPositioned = [];
-    this.allPositionedCharacters = [];
-    this.topPoints = 0;
-    this.currentPoints = 0;
+  constructor(gameState) {
+    this.currentTurn = gameState?.currentTurn || 'player';
+    this.selectedCharacter = gameState?.selectedCharacter || null;
+    this.nextFoeIndex = gameState?.nextFoeIndex || 0;
+    this.gameLevel = gameState?.gameLevel || 1;
+    this.playerTeamPositioned = gameState?.playerTeamPositioned || [];
+    this.foeTeamPositioned = gameState?.foeTeamPositioned || [];
+    this.allPositionedCharacters = gameState?.allPositionedCharacters || [];
+    this.topPoints = gameState?.topPoints || 0;
+    this.currentPoints = gameState?.currentPoints || 0;
+    this.gameLoaded = false;
   }
 
   static from(object) {
     // TODO: create object
-    return null;
+    const playerTeamPositioned = object.playerTeamPositioned.map(positionedCharacter => {
+      const CharacterConstructor = playerTeamTypes.find(constructor => constructor.name.toLowerCase() === positionedCharacter.character.type);
+      return new PositionedCharacter(new CharacterConstructor(positionedCharacter.character), positionedCharacter.position);
+    });
+
+    const foeTeamPositioned = object.foeTeamPositioned.map(positionedCharacter => {
+      const CharacterConstructor = foeTeamTypes.find(constructor => constructor.name.toLowerCase() === positionedCharacter.character.type);
+      return new PositionedCharacter(new CharacterConstructor(positionedCharacter.character), positionedCharacter.position);
+    });
+
+    const allPositionedCharacters = [...playerTeamPositioned, ...foeTeamPositioned];
+
+    return {
+      ...object,
+      playerTeamPositioned,
+      foeTeamPositioned,
+      allPositionedCharacters,
+    };
   }
 }
