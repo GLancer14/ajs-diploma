@@ -19,12 +19,14 @@ export default class GameController {
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes[this.gameState.gameLevel - 1]);
+    this.setHighScores();
+    this.setCurrentScores();
     let playerTeam;
     let foeTeam;
 
     if (this.gameState.gameLevel === 1 && !this.gameState.gameLoaded) {
-      playerTeam = generateTeam(playerTeamTypes, 1, 1);
-      foeTeam = generateTeam(foeTeamTypes, 3, 3);
+      playerTeam = generateTeam(playerTeamTypes, 3, 3);
+      foeTeam = generateTeam(foeTeamTypes, 1, 1);
       this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
       this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
     } else if (this.gameState.gameLevel > 1 && !this.gameState.gameLoaded) {
@@ -75,18 +77,13 @@ export default class GameController {
   }
 
   onNewGameButtonClick = () => {
-    this.gameState = {
-      currentTurn: 'player',
-      selectedCharacter: null,
-      nextFoeIndex: 0,
-      gameLevel: 1,
-      playerTeamPositioned: [],
-      foeTeamPositioned: [],
-      allPositionedCharacters: [],
-      currentPoints: 0,
+    const resetGameStateObject = {
+      highScores: this.gameState.highScores,
     };
 
+    this.gameState = new GameState(resetGameStateObject)
     this.init();
+    this.setHighScores(this.gameState.highScores);
     GamePlay.showMessage("Начинается новая игра!");
   }
 
@@ -102,6 +99,7 @@ export default class GameController {
       this.gameState.gameLoaded = true;
       this.init();
       this.gameState.gameLoaded = false;
+      this.setHighScores(this.gameState.highScores);
       GamePlay.showMessage("Игра загружена!");
     } catch(e) {
       GamePlay.showError('Invalid state');
@@ -125,6 +123,10 @@ export default class GameController {
       this.selectedCharaterAttackPossibleCells.some(cellIndex => cellIndex === index)
     ) {
       this.attackCharacter(index);
+    } else if (
+      this.gameState.selectedCharacter !== null
+    ) {
+      GamePlay.showError("Вы не можете сделать такой ход");
     } else {
       GamePlay.showError("Можно выбрать только собственных персонажей");
     }
@@ -160,20 +162,20 @@ export default class GameController {
   }
 
   setCursorType(index) {
-    if (this.gameState.selectedCharacter !== null) {
+    if (this.gameState.selectedCharacter !== null && this.gameState.playerTeamPositioned.includes(this.gameState.selectedCharacter)) {
       if (this.selectedCharaterMovePossibleCells.some(item => item === index)) {
-        this.gamePlay.cells.forEach((_, index) => {
-          if (this.selectedCharaterMovePossibleCells.some(possibleCellIndex => possibleCellIndex === index)) {
-            this.gamePlay.deselectCell(index);
+        this.gamePlay.cells.forEach((_, cellBeingTested) => {
+          if (this.selectedCharaterMovePossibleCells.some(possibleCellIndex => possibleCellIndex === cellBeingTested)) {
+            this.gamePlay.deselectCell(cellBeingTested);
           }
         });
         this.gamePlay.selectCell(index, "green");
 
         return cursors.pointer;
       } else if (this.selectedCharaterAttackPossibleCells.some(item => item === index)) {
-        this.gamePlay.cells.forEach((_, index) => {
-          if (this.selectedCharaterAttackPossibleCells.some(possibleCellIndex => possibleCellIndex === index)) {
-            this.gamePlay.deselectCell(index);
+        this.gamePlay.cells.forEach((_, cellBeingTested) => {
+          if (this.selectedCharaterAttackPossibleCells.some(possibleCellIndex => possibleCellIndex === cellBeingTested)) {
+            this.gamePlay.deselectCell(cellBeingTested);
           }
         });
         this.gamePlay.selectCell(index, "red");
@@ -181,7 +183,7 @@ export default class GameController {
         return cursors.crosshair;
       } else if (
         index !== this.gameState.selectedCharacter.position &&
-        this.gameState.allPositionedCharacters.some(positionedCharacter => positionedCharacter.position === index)
+        this.gameState.playerTeamPositioned.some(positionedCharacter => positionedCharacter.position === index)
       ) {
         return cursors.pointer;
       } else if (index === this.gameState.selectedCharacter.position) {
@@ -220,7 +222,7 @@ export default class GameController {
 
   async attackCharacter(index) {
     const foeCharacter = this.gameState.allPositionedCharacters.find(character => character.position === index);
-    const damage = Math.max(this.gameState.selectedCharacter.character.attack - foeCharacter.character.defence, this.gameState.selectedCharacter.character.attack * 0.1);
+    const damage = Math.max(this.gameState.selectedCharacter.character.attack - foeCharacter.character.defence, Math.round(this.gameState.selectedCharacter.character.attack * 0.1));
     foeCharacter.character.health -= damage;
     this.gamePlay.deselectCell(this.gameState.selectedCharacter.position);
     this.gameState.selectedCharacter = null;
@@ -238,7 +240,8 @@ export default class GameController {
   handleCharacterDeath(attackedCharacter) {
     if (attackedCharacter.character.health <= 0) {
       if (foeTeamTypes.some(type => attackedCharacter.character instanceof type)) {
-        this.gameState.currentPoints += 50;
+        this.gameState.currentScores += 50;
+        this.setCurrentScores();
       }
 
       this.gameState.playerTeamPositioned = this.gameState.playerTeamPositioned.filter(character => {
@@ -385,7 +388,7 @@ export default class GameController {
     const turnTime = 1000;
     this.gameState.selectedCharacter = this.gameState.foeTeamPositioned[this.gameState.nextFoeIndex];
     this.selectCharacter(this.gameState.selectedCharacter);
-    this.blockWindow(turnTime);
+    this.blockWindow(turnTime + 500);
     setTimeout(() => {
       this.activateFoe();
     }, turnTime);
@@ -431,10 +434,21 @@ export default class GameController {
 
   runEndGameActions(endGameType) {
     this.blockBoard();
-    this.gameState.topPoints = Math.max(this.gameState.topPoints, this.gameState.currentPoints);
-    this.gameState.currentPoints = 0;
-    this.gamePlay.setHighScore(() => this.gameState.topPoints);
+    this.gameState.highScores = Math.max(this.gameState.highScores, this.gameState.currentScores);
+    this.gameState.currentScores = 0;
+    this.setHighScores();
     GamePlay.showMessage(endGameType === 'win' ? "Вы победили!" : "Вы проиграли!");
+  }
+
+  setHighScores() {
+    const highScoresElement = document.querySelector(".high-scores");
+    highScoresElement.textContent = this.gameState.highScores;
+  }
+
+  setCurrentScores() {
+    console.log(this.gameState.currentScores)
+    const currentScoresElement = document.querySelector(".current-scores");
+    currentScoresElement.textContent = this.gameState.currentScores;
   }
 
   checkEndGameActions() {

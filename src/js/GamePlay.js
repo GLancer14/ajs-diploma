@@ -35,7 +35,12 @@ export default class GamePlay {
         <button data-id="action-save" class="btn">Save Game</button>
         <button data-id="action-load" class="btn">Load Game</button>
       </div>
-      <div class="high-score">${this.setHighScore()}</div>
+      <div class="scores-wrapper">
+        <span class="high-scores-desc">High scores:</span>
+        <span class="high-scores">0</span>
+        <span class="current-scores-desc">Current scores:</span>
+        <span class="current-scores">0</span>
+      </div>
       <div class="board-container">
         <div data-id="board" class="board"></div>
       </div>
@@ -185,10 +190,6 @@ export default class GamePlay {
 
   static showMessage(message) {
     alert(message);
-  }
-
-  setHighScore(callback) {
-    return callback;
   }
 
   selectCell(index, color = 'yellow') {

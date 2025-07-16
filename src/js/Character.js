@@ -13,16 +13,16 @@
  * vampire
  */
 export default class Character {
-  constructor(level, type = 'generic') {
+  constructor(characterObject) {
     if (new.target.name === "Character") {
       throw new Error("Персонаж должен создаваться из дочернего класса!");
     }
 
-    this.level = level;
-    this.attack = 0;
-    this.defence = 0;
+    this.level = characterObject.level;
+    this.attack = characterObject.attack || 0;
+    this.defence = characterObject.defence || 0;
     this.health = 50;
-    this.type = type;
+    this.type = 'generic';
     // TODO: выбросите исключение, если кто-то использует "new Character()"
   }
 

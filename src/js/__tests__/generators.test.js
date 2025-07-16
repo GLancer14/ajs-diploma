@@ -2,14 +2,19 @@ import { playerTeamTypes } from "../characters/allowedTypes";
 import { characterGenerator, generateTeam } from "../generators";
 
 test('check unending characters generation', () => {
-  const generator = characterGenerator(playerTeamTypes, 2);
-  let generatorReturnedValue;
-  for (let i = 0; i < 100; i++) {
-    generatorReturnedValue = generator.next().value;
+  const charactersNumber = 50;
+  const generator = characterGenerator(playerTeamTypes, 1);
+  const generatedCharacters = [];
+  for (let i = 0; i < charactersNumber; i++) {
+    generatedCharacters.push(generator.next().value);
   }
 
-  const isMatch = playerTeamTypes.some(expected => generatorReturnedValue instanceof expected);
+  const isMatch = playerTeamTypes.some(expected => generatedCharacters[generatedCharacters.length - 1] instanceof expected);
   expect(isMatch).toBe(true);
+  expect(generatedCharacters).toHaveLength(charactersNumber);
+  expect(generatedCharacters).toContainEqual(new (playerTeamTypes[0])({ level: 1 }));
+  expect(generatedCharacters).toContainEqual(new (playerTeamTypes[1])({ level: 1 }));
+  expect(generatedCharacters).toContainEqual(new (playerTeamTypes[2])({ level: 1 }));
 });
 
 test('check characters count after team creation', () => {
@@ -19,6 +24,7 @@ test('check characters count after team creation', () => {
 
 test('check characters level range after team creation', () => {
   const team = generateTeam(playerTeamTypes, 4, 50);
-  const rangeCorrectness = team.every(character => character.level > 0 && character.level <= 4);
-  expect(rangeCorrectness).toBe(true);
+  // const rangeCorrectness = team.every(character => character.level > 0 && character.level <= 4);
+  const membersLevels = Array.from(new Set(team.map(character => character.level))).sort((a, b) => a - b);
+  expect([1, 2, 3, 4]).toEqual(membersLevels);
 });

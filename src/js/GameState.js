@@ -4,6 +4,7 @@ import PositionedCharacter from "./PositionedCharacter.js";
 
 export default class GameState {
   constructor(gameState) {
+    console.log(gameState)
     this.currentTurn = gameState?.currentTurn || 'player';
     this.selectedCharacter = gameState?.selectedCharacter || null;
     this.nextFoeIndex = gameState?.nextFoeIndex || 0;
@@ -11,8 +12,8 @@ export default class GameState {
     this.playerTeamPositioned = gameState?.playerTeamPositioned || [];
     this.foeTeamPositioned = gameState?.foeTeamPositioned || [];
     this.allPositionedCharacters = gameState?.allPositionedCharacters || [];
-    this.topPoints = gameState?.topPoints || 0;
-    this.currentPoints = gameState?.currentPoints || 0;
+    this.highScores = gameState?.highScores || 0;
+    this.currentScores = gameState?.currentScores || 0;
     this.gameLoaded = false;
   }
 

@@ -51,7 +51,19 @@ body {
 
 .controls {
   text-align: center;
-  margin: 50px 0;
+  margin: 25px 0;
+}
+
+.scores-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 25px;
+
+  font-size: 1.2rem;
+
+  color: white;
 }
 
 .board-container {
