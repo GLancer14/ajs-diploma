@@ -8,7 +8,9 @@ export default defineConfig([
   pluginJs.configs.recommended,
   {
     ignores: [
-      'dist/', '*.json'
+      'dist/',
+      '*.json',
+      '*.mjs',
     ], // отключение проверок для папок
   },
   {
@@ -98,8 +100,6 @@ export default defineConfig([
       'jest/prefer-expect-assertions': 'off',
       'no-undef': 'off',
      },
-    languageOptions: {
-      globals: pluginJest.environments.globals.jest
-    }
+    languageOptions: { globals: pluginJest.environments.globals.jest },
   },
 ]);

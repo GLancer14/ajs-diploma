@@ -14,8 +14,8 @@
  */
 export default class Character {
   constructor(characterObject) {
-    if (new.target.name === "Character") {
-      throw new Error("Персонаж должен создаваться из дочернего класса!");
+    if (new.target.name === 'Character') {
+      throw new Error('Персонаж должен создаваться из дочернего класса!');
     }
 
     this.level = characterObject.level;
@@ -29,9 +29,9 @@ export default class Character {
   upgradeCharacter(levelCount) {
     for (let i = 0; i < levelCount; i++) {
       this.level += 1;
-      this.health =  this.health < 20 ? this.health + 80 : 100;
-      this.attack =  Math.max(this.attack, Math.round(this.attack * (50 + this.health) / 100));
-      this.defence =  Math.max(this.defence, Math.round(this.defence * (50 + this.health) / 100));
+      this.health = this.health < 20 ? this.health + 80 : 100;
+      this.attack = Math.max(this.attack, Math.round(this.attack * (50 + this.health) / 100));
+      this.defence = Math.max(this.defence, Math.round(this.defence * (50 + this.health) / 100));
     }
   }
 }

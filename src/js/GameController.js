@@ -31,7 +31,7 @@ export default class GameController {
       this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
     } else if (this.gameState.gameLevel > 1 && !this.gameState.gameLoaded) {
       playerTeam = this.gameState.playerTeamPositioned.map(item => item.character);
-      foeTeam = generateTeam(foeTeamTypes, this.gameState.gameLevel, 2 + this.gameState.gameLevel);
+      foeTeam = generateTeam(foeTeamTypes, this.gameState.gameLevel, 3 + this.gameState.gameLevel);
       this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
       this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
     }
@@ -413,8 +413,10 @@ export default class GameController {
 
   activateFoe() {
     const playerTeamCharactersCoordinates = this.gameState.playerTeamPositioned.map(positionedCharacter => {
-      const positionedCharacterCoordinates = this.getCellCoordinates(positionedCharacter.position);
-      return { coordinates: positionedCharacterCoordinates, position: positionedCharacter.position };
+      return {
+        coordinates: this.getCellCoordinates(positionedCharacter.position),
+        position: positionedCharacter.position,
+      };
     });
     const foeCharacterCoordinates = this.getCellCoordinates(this.gameState.selectedCharacter.position);
     if (this.selectedCharaterAttackPossibleCells.length > 0) {
@@ -426,9 +428,12 @@ export default class GameController {
       })[0];
       this.attackCharacter(playerCharacterWithMinHealth.position);
     } else {
-      const closestPlayerCharacter = playerTeamCharactersCoordinates.map(position => {
-        const distanceToPlayerCharacter = calcDistanceBetweenTwoPoints(position.coordinates, foeCharacterCoordinates);
-        return { distanceToPlayerCharacter, position };
+      const closestPlayerCharacter = playerTeamCharactersCoordinates.map(playerCharacterPosition => {
+        const distanceToPlayerCharacter = calcDistanceBetweenTwoPoints(
+          playerCharacterPosition.coordinates,
+          foeCharacterCoordinates
+        );
+        return { distanceToPlayerCharacter, playerCharacterPosition };
       }).sort((a, b) => a.distanceToPlayerCharacter - b.distanceToPlayerCharacter)[0];
       const closestCellToCharacter = this.selectedCharaterMovePossibleCells.map(possibleMoveCell => {
         const possibleMoveCellCoordinates = this.getCellCoordinates(possibleMoveCell);
@@ -436,7 +441,7 @@ export default class GameController {
           closestPlayerCharacter.playerCharacterPosition.coordinates,
           possibleMoveCellCoordinates
         );
-        return {distanceToPlayerCharacter, possibleMoveCell};
+        return { distanceToPlayerCharacter, possibleMoveCell };
       }).sort((a, b) => a.distanceToPlayerCharacter - b.distanceToPlayerCharacter)[0];
       this.moveCharacter(closestCellToCharacter.possibleMoveCell);
     }
@@ -463,7 +468,6 @@ export default class GameController {
   }
 
   setCurrentScores() {
-    console.log(this.gameState.currentScores)
     const currentScoresElement = document.querySelector('.current-scores');
     currentScoresElement.textContent = this.gameState.currentScores;
   }

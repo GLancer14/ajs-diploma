@@ -27,5 +27,10 @@ test('check characters count after team creation', () => {
 test('check characters level range after team creation', () => {
   const team = generateTeam(playerTeamTypes, 4, 50);
   const membersLevels = Array.from(new Set(team.map(character => character.level))).sort((a, b) => a - b);
-  expect([1, 2, 3, 4]).toEqual(membersLevels);
+  expect([
+    1,
+    2,
+    3,
+    4,
+  ]).toEqual(membersLevels);
 });

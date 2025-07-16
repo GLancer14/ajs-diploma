@@ -6,7 +6,8 @@ test.each([
     [ 0, 7 ],
     'top-left'
   ],
-  [ 'top-right',
+  [
+    'top-right',
     [ 6, 7 ],
     'top-right'
   ],
