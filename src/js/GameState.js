@@ -17,18 +17,22 @@ export default class GameState {
 
   static from(object) {
     const playerTeamPositioned = object.playerTeamPositioned.map(positionedCharacter => {
-      const CharacterConstructor = playerTeamTypes.find(constructor => {
-        return constructor.name.toLowerCase() === positionedCharacter.character.type;
+      const CharacterConstructor = playerTeamTypes.find(CharacterClass => {
+        const exampleCharacterClassInstance = new CharacterClass({ level: 1 });
+        return exampleCharacterClassInstance.type === positionedCharacter.character.type;
       });
       const newCharacter = new CharacterConstructor(positionedCharacter.character);
+
       return new PositionedCharacter(newCharacter, positionedCharacter.position);
     });
 
     const foeTeamPositioned = object.foeTeamPositioned.map(positionedCharacter => {
-      const CharacterConstructor = foeTeamTypes.find(constructor => {
-        return constructor.name.toLowerCase() === positionedCharacter.character.type;
+      const CharacterConstructor = foeTeamTypes.find(CharacterClass => {
+        const exampleCharacterClassInstance = new CharacterClass({ level: 1 });
+        return exampleCharacterClassInstance.type === positionedCharacter.character.type;
       });
       const newCharacter = new CharacterConstructor(positionedCharacter.character);
+
       return new PositionedCharacter(newCharacter, positionedCharacter.position);
     });
 
