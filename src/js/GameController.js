@@ -16,8 +16,6 @@ export default class GameController {
   }
 
   init() {
-    // TODO: add event listeners to gamePlay events
-    // TODO: load saved stated from stateService
     this.gamePlay.drawUi(themes[this.gameState.gameLevel - 1]);
     this.setHighScores();
     this.setCurrentScores();
@@ -81,7 +79,6 @@ export default class GameController {
 
   onNewGameButtonClick = () => {
     const resetGameStateObject = { highScores: this.gameState.highScores };
-
     this.gameState = new GameState(resetGameStateObject);
     this.init();
     this.setHighScores(this.gameState.highScores);
@@ -124,9 +121,7 @@ export default class GameController {
       this.selectedCharaterAttackPossibleCells.some(cellIndex => cellIndex === index)
     ) {
       this.attackCharacter(index);
-    } else if (
-      this.gameState.selectedCharacter !== null
-    ) {
+    } else if (this.gameState.selectedCharacter !== null) {
       GamePlay.showError('Вы не можете сделать такой ход');
     } else {
       GamePlay.showError('Можно выбрать только собственных персонажей');
@@ -308,13 +303,14 @@ export default class GameController {
 
   calcMovePossibleCellsIndexes() {
     if (this.gameState.selectedCharacter !== null) {
+      const boardSize = this.gamePlay.boardSize;
       const selectedCharacterIndex = this.gameState.selectedCharacter.position;
       const selectedCharacterMoveRange = this.gameState.selectedCharacter.character.moveRange;
       const { row: selectedCharacterIndexCellRow } = this.getCellCoordinates(selectedCharacterIndex);
       const possibleCellsIndexes = [];
       for (let i = -selectedCharacterMoveRange; i <= selectedCharacterMoveRange; i++) {
         if (i !== 0) {
-          const cellIndex = selectedCharacterIndex + i * this.gamePlay.boardSize;
+          const cellIndex = selectedCharacterIndex + i * boardSize;
           possibleCellsIndexes.push(cellIndex);
         }
       }
@@ -323,8 +319,8 @@ export default class GameController {
         if (i !== 0) {
           const cellIndex = selectedCharacterIndex + i;
           if (
-            cellIndex >= selectedCharacterIndexCellRow * this.gamePlay.boardSize &&
-            cellIndex < selectedCharacterIndexCellRow * this.gamePlay.boardSize + this.gamePlay.boardSize
+            cellIndex >= selectedCharacterIndexCellRow * boardSize &&
+            cellIndex < selectedCharacterIndexCellRow * boardSize + boardSize
           ) {
             possibleCellsIndexes.push(cellIndex);
           }
@@ -334,11 +330,11 @@ export default class GameController {
       for (let i = -selectedCharacterMoveRange; i <= selectedCharacterMoveRange; i++) {
         if (i !== 0) {
           const cellIndex = Math.sign(i) === -1 ?
-            selectedCharacterIndex - this.gamePlay.boardSize * Math.abs(i) + i :
-            selectedCharacterIndex + this.gamePlay.boardSize * Math.abs(i) + i;
+            selectedCharacterIndex - boardSize * Math.abs(i) + i :
+            selectedCharacterIndex + boardSize * Math.abs(i) + i;
           if (
-            cellIndex >= (selectedCharacterIndexCellRow + i) * this.gamePlay.boardSize &&
-            cellIndex < (selectedCharacterIndexCellRow + i) * this.gamePlay.boardSize + this.gamePlay.boardSize
+            cellIndex >= (selectedCharacterIndexCellRow + i) * boardSize &&
+            cellIndex < (selectedCharacterIndexCellRow + i) * boardSize + boardSize
           ) {
             possibleCellsIndexes.push(cellIndex);
           }
@@ -348,11 +344,11 @@ export default class GameController {
       for (let i = -selectedCharacterMoveRange; i <= selectedCharacterMoveRange; i++) {
         if (i !== 0) {
           const cellIndex = Math.sign(i) === -1 ?
-            selectedCharacterIndex - this.gamePlay.boardSize * Math.abs(i) - i :
-            selectedCharacterIndex + this.gamePlay.boardSize * Math.abs(i) - i;
+            selectedCharacterIndex - boardSize * Math.abs(i) - i :
+            selectedCharacterIndex + boardSize * Math.abs(i) - i;
           if (
-            cellIndex >= (selectedCharacterIndexCellRow + i) * this.gamePlay.boardSize &&
-            cellIndex < (selectedCharacterIndexCellRow + i) * this.gamePlay.boardSize + this.gamePlay.boardSize
+            cellIndex >= (selectedCharacterIndexCellRow + i) * boardSize &&
+            cellIndex < (selectedCharacterIndexCellRow + i) * boardSize + boardSize
           ) {
             possibleCellsIndexes.push(cellIndex);
           }
@@ -366,7 +362,7 @@ export default class GameController {
 
         if (
           possibleCellIndex >= 0 &&
-          possibleCellIndex < this.gamePlay.boardSize ** 2 &&
+          possibleCellIndex < boardSize ** 2 &&
           !charactersAtMoveRange
         ) {
           return true;
@@ -387,10 +383,10 @@ export default class GameController {
     const blockingWrapper = document.createElement('div');
     blockingWrapper.classList.add('blocking-wrapper');
     document.body.append(blockingWrapper);
-    const hourglass = document.createElement('span');
-    hourglass.classList.add('blocking-wrapper_hourglass');
-    hourglass.textContent = '\u{1f551}';
-    blockingWrapper.append(hourglass);
+    const clocks = document.createElement('span');
+    clocks.classList.add('blocking-wrapper_clocks');
+    clocks.textContent = '\u{1f551}';
+    blockingWrapper.append(clocks);
 
     setTimeout(() => blockingWrapper.remove(), existingTime);
   }

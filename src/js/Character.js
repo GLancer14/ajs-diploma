@@ -23,7 +23,6 @@ export default class Character {
     this.defence = characterObject.defence || 0;
     this.health = 50;
     this.type = 'generic';
-    // TODO: выбросите исключение, если кто-то использует "new Character()"
   }
 
   upgradeCharacter(levelCount) {

@@ -16,7 +16,6 @@ export default class GameState {
   }
 
   static from(object) {
-    // TODO: create object
     const playerTeamPositioned = object.playerTeamPositioned.map(positionedCharacter => {
       const CharacterConstructor = playerTeamTypes.find(constructor => {
         return constructor.name.toLowerCase() === positionedCharacter.character.type;
