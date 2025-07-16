@@ -5,5 +5,13 @@ import Daemon from './Daemon.js';
 import Vampire from './Vampire.js';
 import Undead from './Undead.js';
 
-export const playerTeamTypes = [ Bowman, Swordsman, Magician ];
-export const foeTeamTypes = [ Vampire, Undead, Daemon ];
+export const playerTeamTypes = [
+  Bowman,
+  Swordsman,
+  Magician
+];
+export const foeTeamTypes = [
+  Vampire,
+  Undead,
+  Daemon
+];

@@ -1,4 +1,4 @@
-import PositionedCharacter from "./PositionedCharacter.js";
+import PositionedCharacter from './PositionedCharacter.js';
 
 /**
  * @todo
@@ -46,7 +46,7 @@ export function calcTileType(index, boardSize) {
   } else {
     tileType = 'center';
   }
-  
+
   return tileType;
 }
 
@@ -88,7 +88,7 @@ export function calcPositionedCharacters(characterType, teamStorage, boardSize) 
 }
 
 export function calcDistanceBetweenTwoPoints(firstPoint, secondPoint) {
-  const {row: x1, column: y1} = firstPoint;
-  const {row: x2, column: y2} = secondPoint;
-  return Number((Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)).toFixed("2"));
+  const { row: x1, column: y1 } = firstPoint;
+  const { row: x2, column: y2 } = secondPoint;
+  return Number((Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)).toFixed(2));
 }

@@ -2,6 +2,7 @@ import pluginJs from '@eslint/js';
 import globals from 'globals';
 import { defineConfig } from 'eslint/config';
 import stylisticJs from '@stylistic/eslint-plugin-js';
+import pluginJest from 'eslint-plugin-jest';
 
 export default defineConfig([
   pluginJs.configs.recommended,
@@ -53,7 +54,7 @@ export default defineConfig([
       ], // пробелы внутри массива - авто
       'array-bracket-newline': [
         'error', {
-          'multiline': true, 'minItems': 2
+          'multiline': true, 'minItems': 3
         }
       ], // перенос элементов массива на новые строки, если многоэлементный - авто
       'object-curly-spacing': [
@@ -62,7 +63,7 @@ export default defineConfig([
       'object-curly-newline': [
         'error', {
           'ObjectExpression': {
-            'multiline': true, 'minProperties': 2
+            'multiline': true, 'minProperties': 3
           },
         }
       ], // перенос свойств объекта на новые строки, если много свойств - авто
@@ -88,5 +89,17 @@ export default defineConfig([
         }
       ], // пустые строки, авто
     },
+  },
+  {
+    files: [ '**/*.test.js' ],
+    plugins: { jest: pluginJest, },
+    rules: {
+      ...pluginJest.configs['flat/recommended'].rules,
+      'jest/prefer-expect-assertions': 'off',
+      'no-undef': 'off',
+     },
+    languageOptions: {
+      globals: pluginJest.environments.globals.jest
+    }
   },
 ]);

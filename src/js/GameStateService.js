@@ -1,4 +1,4 @@
-import GamePlay from "./GamePlay.js";
+import GamePlay from './GamePlay.js';
 
 export default class GameStateService {
   constructor(storage) {
@@ -15,7 +15,7 @@ export default class GameStateService {
       if (gameState === null) {
         throw new Error('Invalid state');
       }
-      
+
       return JSON.parse(gameState);
     } catch (e) {
       GamePlay.showError(e.message);

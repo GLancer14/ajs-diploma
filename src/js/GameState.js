@@ -1,10 +1,8 @@
-import { foeTeamTypes, playerTeamTypes } from "./characters/allowedTypes.js";
-import GameController from "./GameController.js";
-import PositionedCharacter from "./PositionedCharacter.js";
+import { foeTeamTypes, playerTeamTypes } from './characters/allowedTypes.js';
+import PositionedCharacter from './PositionedCharacter.js';
 
 export default class GameState {
   constructor(gameState) {
-    console.log(gameState)
     this.currentTurn = gameState?.currentTurn || 'player';
     this.selectedCharacter = gameState?.selectedCharacter || null;
     this.nextFoeIndex = gameState?.nextFoeIndex || 0;
@@ -20,16 +18,22 @@ export default class GameState {
   static from(object) {
     // TODO: create object
     const playerTeamPositioned = object.playerTeamPositioned.map(positionedCharacter => {
-      const CharacterConstructor = playerTeamTypes.find(constructor => constructor.name.toLowerCase() === positionedCharacter.character.type);
-      return new PositionedCharacter(new CharacterConstructor(positionedCharacter.character), positionedCharacter.position);
+      const CharacterConstructor = playerTeamTypes.find(constructor => {
+        return constructor.name.toLowerCase() === positionedCharacter.character.type;
+      });
+      const newCharacter = new CharacterConstructor(positionedCharacter.character);
+      return new PositionedCharacter(newCharacter, positionedCharacter.position);
     });
 
     const foeTeamPositioned = object.foeTeamPositioned.map(positionedCharacter => {
-      const CharacterConstructor = foeTeamTypes.find(constructor => constructor.name.toLowerCase() === positionedCharacter.character.type);
-      return new PositionedCharacter(new CharacterConstructor(positionedCharacter.character), positionedCharacter.position);
+      const CharacterConstructor = foeTeamTypes.find(constructor => {
+        return constructor.name.toLowerCase() === positionedCharacter.character.type;
+      });
+      const newCharacter = new CharacterConstructor(positionedCharacter.character);
+      return new PositionedCharacter(newCharacter, positionedCharacter.position);
     });
 
-    const allPositionedCharacters = [...playerTeamPositioned, ...foeTeamPositioned];
+    const allPositionedCharacters = [ ...playerTeamPositioned, ...foeTeamPositioned ];
 
     return {
       ...object,
