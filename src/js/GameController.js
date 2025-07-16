@@ -23,7 +23,7 @@ export default class GameController {
     let foeTeam;
 
     if (this.gameState.gameLevel === 1 && !this.gameState.gameLoaded) {
-      playerTeam = generateTeam(playerTeamTypes, 1, 3);
+      playerTeam = generateTeam(playerTeamTypes, 2, 4);
       foeTeam = generateTeam(foeTeamTypes, 1, 3);
       this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
       this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
@@ -403,7 +403,9 @@ export default class GameController {
 
   calculateLevelUpAfterVictory() {
     this.gameState.playerTeamPositioned.forEach(positionedCharacter => {
-      positionedCharacter.character.upgradeCharacter(1);
+      if (positionedCharacter.character.level < 4) {
+        positionedCharacter.character.upgradeCharacter(1);
+      }
     });
   }
 
