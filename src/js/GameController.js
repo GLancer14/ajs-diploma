@@ -4,13 +4,13 @@ import { playerTeamTypes, foeTeamTypes } from './characters/allowedTypes.js';
 import {
   blockWindow,
   calcDistanceBetweenTwoPoints,
-  calcPositionedCharacters,
   compileTooltip,
   getCellCoordinates
 } from './utils.js';
 import GameState from './GameState.js';
 import GamePlay from './GamePlay.js';
 import cursors from './cursors.js';
+import Team from './Team.js';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -31,13 +31,13 @@ export default class GameController {
     if (this.gameState.gameLevel === 1 && !this.gameState.gameLoaded) {
       playerTeam = generateTeam(playerTeamTypes, 2, 4);
       foeTeam = generateTeam(foeTeamTypes, 1, 3);
-      this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
-      this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
+      this.gameState.playerTeamPositioned = playerTeam.calcPositionedCharacters('player', this.gamePlay.boardSize);
+      this.gameState.foeTeamPositioned = foeTeam.calcPositionedCharacters('foe', this.gamePlay.boardSize);
     } else if (this.gameState.gameLevel > 1 && !this.gameState.gameLoaded) {
-      playerTeam = this.gameState.playerTeamPositioned.map(item => item.character);
+      playerTeam = new Team(this.gameState.playerTeamPositioned.map(item => item.character));
       foeTeam = generateTeam(foeTeamTypes, this.gameState.gameLevel, 3 + this.gameState.gameLevel);
-      this.gameState.playerTeamPositioned = calcPositionedCharacters('player', playerTeam, this.gamePlay.boardSize);
-      this.gameState.foeTeamPositioned = calcPositionedCharacters('foe', foeTeam, this.gamePlay.boardSize);
+      this.gameState.playerTeamPositioned = playerTeam.calcPositionedCharacters('player', this.gamePlay.boardSize);
+      this.gameState.foeTeamPositioned = foeTeam.calcPositionedCharacters('foe', this.gamePlay.boardSize);
     }
 
     this.gameState.allPositionedCharacters = [

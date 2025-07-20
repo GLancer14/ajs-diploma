@@ -21,11 +21,11 @@ test('check unending characters generation', () => {
 
 test('check characters count after team creation', () => {
   const team = generateTeam(playerTeamTypes, 2, 6);
-  expect(team.length).toBe(6);
+  expect(team.characters.length).toBe(6);
 });
 
 test('check characters level range after team creation', () => {
-  const team = generateTeam(playerTeamTypes, 4, 50);
+  const team = generateTeam(playerTeamTypes, 4, 50).characters;
   const membersLevels = Array.from(new Set(team.map(character => character.level))).sort((a, b) => a - b);
   expect([
     1,
