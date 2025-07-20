@@ -92,3 +92,35 @@ export function calcDistanceBetweenTwoPoints(firstPoint, secondPoint) {
   const { row: x2, column: y2 } = secondPoint;
   return Number((Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)).toFixed(2));
 }
+
+export function blockBoard() {
+  const board = document.querySelector('.board');
+  const boardCloned = board.cloneNode(true);
+  board.replaceWith(boardCloned);
+}
+
+export function blockWindow(existingTime) {
+  const blockingWrapper = document.createElement('div');
+  blockingWrapper.classList.add('blocking-wrapper');
+  document.body.append(blockingWrapper);
+  const clocks = document.createElement('span');
+  clocks.classList.add('blocking-wrapper_clocks');
+  clocks.textContent = '\u{1f551}';
+  blockingWrapper.append(clocks);
+
+  setTimeout(() => blockingWrapper.remove(), existingTime);
+}
+
+export function getCellCoordinates(index, boardSize) {
+  const cellRow = Math.ceil((index + 1) / ((boardSize ** 2) + 1) * boardSize) - 1;
+  const cellColumn = index - ((cellRow) * boardSize);
+  return { row: cellRow, column: cellColumn };
+}
+
+export function compileTooltip(positionedCharacter) {
+  const levelContent = `\u{1F396} ${positionedCharacter.character.level} `;
+  const attackContent = `\u2694 ${positionedCharacter.character.attack} `;
+  const defenceContent = `\u{1F6E1} ${positionedCharacter.character.defence} `;
+  const healthContent = `\u2764 ${positionedCharacter.character.health}`;
+  return ''.concat(levelContent, attackContent, defenceContent, healthContent);
+}

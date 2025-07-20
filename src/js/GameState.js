@@ -1,5 +1,7 @@
 import { foeTeamTypes, playerTeamTypes } from './characters/allowedTypes.js';
+import GamePlay from './GamePlay.js';
 import PositionedCharacter from './PositionedCharacter.js';
+import { blockBoard } from './utils.js';
 
 export default class GameState {
   constructor(gameState) {
@@ -44,5 +46,33 @@ export default class GameState {
       foeTeamPositioned,
       allPositionedCharacters,
     };
+  }
+
+  setHighScores() {
+    const highScoresElement = document.querySelector('.high-scores');
+    highScoresElement.textContent = this.highScores;
+  }
+
+  setCurrentScores() {
+    const currentScoresElement = document.querySelector('.current-scores');
+    currentScoresElement.textContent = this.currentScores;
+  }
+
+  runEndGameActions(endGameType) {
+    blockBoard();
+    this.highScores = Math.max(this.highScores, this.currentScores);
+    this.currentScores = 0;
+    this.setHighScores();
+    GamePlay.showMessage(endGameType === 'win' ? 'Вы победили!' : 'Вы проиграли!');
+  }
+
+  checkEndGameActions() {
+    if (this.playerTeamPositioned.length === 0) {
+      this.runEndGameActions('lose');
+      return true;
+    } else if (this.foeTeamPositioned.length === 0 && this.gameLevel === 4) {
+      this.runEndGameActions('win');
+      return true;
+    }
   }
 }
