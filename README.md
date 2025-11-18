@@ -1,6 +1,6 @@
 # Приложение "Ретро-игра"
-<div style="display: flex; flex-direction: column; align-items: center;">
-  <img src="retro-game.png">
+<div align="center">
+  <img src="retro-game.png" width=500 height=500>
 </div>
 
 ## Концепция игры
